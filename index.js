@@ -9,6 +9,20 @@ const fs = require('node:fs');
 // Create a new clinet instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
+// Handle event files
+const eventFiles = fs
+  .readdirSync('./events')
+  .filter((file) => file.endsWith('.js'));
+
+for (const file of eventFiles) {
+  const event = require(`./events/${file}`);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
+  }
+}
+
 // commands 폴더 컨트롤링
 client.commands = new Collection();
 const commandFiles = fs
@@ -23,9 +37,9 @@ for (const file of commandFiles) {
 }
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
-  console.log('Ready!');
-});
+// client.once('ready', () => {
+//   console.log('Ready!');
+// });
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
